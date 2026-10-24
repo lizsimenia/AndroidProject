@@ -17,8 +17,16 @@ import com.example.coflow.ui.tasks.ChooseDateScreen
 import com.example.coflow.ui.tasks.ChooseProjectScreen
 import com.example.coflow.ui.tasks.CreateTaskRoute
 import com.example.coflow.ui.tasks.TaskDetailScreen
+import com.example.coflow.ui.tasks.TaskDetailViewModel
 import com.example.coflow.ui.tasks.TasksScreen
 import com.example.coflow.ui.theme.CoFlowTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Alignment
+import androidx.compose.material3.CircularProgressIndicator
 
 object Screen {
     const val TASKS = "tasks"
@@ -37,7 +45,7 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             CoFlowTheme {
-                var isAuthenticated by remember { mutableStateOf(true) }
+                var isAuthenticated by remember { mutableStateOf(false) }
 
                 if (isAuthenticated) {
                     val navController = rememberNavController()
@@ -50,27 +58,44 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        // Экран просмотра задачи
+                        // Экран просмотра задачи (Загрузка из Firebase через ViewModel)
+                        // Экран просмотра задачи (Загрузка из Firebase через ViewModel)
                         composable(
                             route = Screen.TASK_DETAIL,
-                            arguments = listOf(androidx.navigation.navArgument("taskId") { type = androidx.navigation.NavType.IntType })
+                            arguments = listOf(androidx.navigation.navArgument("taskId") { type = androidx.navigation.NavType.StringType })
                         ) { backStackEntry ->
-                            val taskId = backStackEntry.arguments?.getInt("taskId")
-                            // Ищем задачу в тестовых данных по ID
-                            val task = com.example.coflow.data.TasksTestData.tasks.find { it.id == taskId }
+                            val taskId = backStackEntry.arguments?.getString("taskId") ?: return@composable
+
+                            // Создаем ViewModel для конкретной задачи
+                            val viewModel: TaskDetailViewModel = viewModel(
+                                factory = object : androidx.lifecycle.ViewModelProvider.Factory {
+                                    @Suppress("UNCHECKED_CAST")
+                                    override fun <T : androidx.lifecycle.ViewModel> create(modelClass: Class<T>): T {
+                                        return TaskDetailViewModel(taskId) as T
+                                    }
+                                }
+                            )
+
+                            // 🔥 ВАЖНО: Здесь ОБЯЗАТЕЛЬНО должно быть .collectAsState()
+                            val task by viewModel.task.collectAsState()
 
                             if (task != null) {
                                 TaskDetailScreen(
-                                    task = task,
+                                    task = task!!,
                                     onBackClick = { navController.popBackStack() },
                                     onEditClick = {
                                         android.widget.Toast.makeText(
                                             this@MainActivity,
-                                            "Редактирование ляляля",
+                                            "Редактирование (в разработке)",
                                             android.widget.Toast.LENGTH_SHORT
                                         ).show()
                                     }
                                 )
+                            } else {
+                                // Показываем крутилку загрузки, пока задача летит из Firestore
+                                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                    CircularProgressIndicator()
+                                }
                             }
                         }
 

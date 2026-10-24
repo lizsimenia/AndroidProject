@@ -1,48 +1,47 @@
 package com.example.coflow.models
 
-import com.example.coflow.models.UserModel
+import com.example.coflow.data.firebase.TaskSchema
+import com.example.coflow.data.firebase.TaskStatus
+import com.google.firebase.firestore.DocumentReference
+import com.google.firebase.firestore.FirebaseFirestore
 import java.time.LocalDateTime
 
-/** Перечисление для статусов задачи */
-enum class TaskStatus (val code:Int) {
-    TODO(0),
-    IN_PROGRESS(1),
-    DONE(2);
-
-    companion object {
-        fun fromInt(value: Int): TaskStatus {
-            return entries.firstOrNull { it.code == value } ?: TODO
-        }
+// Доменная модель задачи (используется в ViewModel и UI)
+data class TaskModel(
+    val id: String = "",
+    val projectRef: DocumentReference? = null,
+    val authorRef: DocumentReference? = null,
+    val executorRef: DocumentReference? = null,
+    val title: String = "",
+    val description: String = "",
+    val deadline: LocalDateTime = LocalDateTime.now(),
+    val status: TaskStatus = TaskStatus.TODO
+) {
+    // Метод для конвертации в схему базы данных (требуется кодом одногруппника)
+    fun toSchema(db: FirebaseFirestore): TaskSchema {
+        return TaskSchema(
+            id = id,
+            projectRef = projectRef,
+            authorRef = authorRef,
+            executorRef = executorRef,
+            title = title,
+            description = description,
+            deadline = deadline,
+            status = status
+        )
     }
 }
 
-class TaskModel (
-    val id: Int,
-    _title: String, // название
-    _description: String, // описание
-    var performers: Array<UserModel>, // исполнители задачи
-    var deadline: LocalDateTime, // дата окончания
-    //var color: String, // цвет задачи
-    var status: TaskStatus // TODO - к исполнению, IN_PROGRESS - в процессе, DONE - сделано
-) {
-
-    var title: String = ""
-        set(value) {
-            require(value.isNotBlank()) { "Название не может быть пустым" }
-            field = value.trim()
-        }
-
-    var description: String = ""
-        set(value) {
-            field = value.trim()
-        }
-
-    init {
-        title = _title
-        description = _description
-    }
-
-    fun ClearPerformers() {
-        performers = emptyArray()
-    }
+// Функция расширения для конвертации из Схемы БД в Доменную модель
+fun TaskSchema.toDomain(): TaskModel {
+    return TaskModel(
+        id = this.id,
+        projectRef = this.projectRef,
+        authorRef = this.authorRef,
+        executorRef = this.executorRef,
+        title = this.title,
+        description = this.description,
+        deadline = this.deadline,
+        status = this.status
+    )
 }

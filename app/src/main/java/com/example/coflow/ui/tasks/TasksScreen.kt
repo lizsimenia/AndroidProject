@@ -27,9 +27,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.coflow.data.Task
-import com.example.coflow.models.TaskStatus
-import com.example.coflow.data.TasksTestData
+//import com.example.coflow.data.Task
+//import com.example.coflow.models.TaskStatus
+import com.example.coflow.models.TaskModel
+import com.example.coflow.data.firebase.TaskStatus
+import com.google.firebase.auth.FirebaseAuth
+import java.time.LocalDateTime
+//import com.example.coflow.data.TasksTestData
 import com.example.coflow.ui.components.*
 import com.example.coflow.ui.theme.*
 import androidx.compose.ui.tooling.preview.Preview
@@ -38,13 +42,38 @@ import java.time.format.DateTimeFormatter
 import com.example.coflow.R
 
 private enum class TaskGrouping { STATUS, DEADLINE }
-private data class TaskGroup(val id: String, val title: String, val tasks: List<Task>)
+private data class TaskGroup(val id: String, val title: String, val tasks: List<TaskModel>)
 
 @Composable
-fun TasksScreen(onNavigateToCreateTask: () -> Unit, onNavigateToTaskDetail: (Int) -> Unit) {
+fun TasksScreen(
+    viewModel: TaskScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel(), // ← ViewModel создается сам
+    onNavigateToCreateTask: () -> Unit,
+    onNavigateToTaskDetail: (String) -> Unit
+) {
+    // 1. Получаем состояние из ViewModel
+    val uiState by viewModel.uiState.collectAsState()
+    val currentUserId = viewModel.getCurrentUserId()
+
+    // 2. Извлекаем список задач. Если идет загрузка или ошибка, покажем пустой список (или экран загрузки ниже)
+    val tasks = when (val state = uiState) {
+        is TasksUiState.Success -> state.tasks
+        else -> emptyList()
+    }
+
+    // 3. (Опционально, но рекомендуется) Показываем индикатор загрузки, если данные еще не пришли
+    if (uiState is TasksUiState.Loading) {
+        androidx.compose.foundation.layout.Box(
+            modifier = androidx.compose.ui.Modifier.fillMaxSize(),
+            contentAlignment = androidx.compose.ui.Alignment.Center
+        ) {
+            androidx.compose.material3.CircularProgressIndicator(color = com.example.coflow.ui.theme.CoFlowColors.Blue)
+        }
+        return // Прерываем отрисовку остального UI, пока грузится
+    }
+
     var grouping by remember { mutableStateOf(TaskGrouping.STATUS) }
     var selectedFilters by remember { mutableStateOf(setOf<String>()) }
-    var collapsedGroups by remember { mutableStateOf(setOf("IN_PROGRESS")) }
+    var collapsedGroups by remember { mutableStateOf(setOf("IN_PROCESS")) }
     var dialogTitle by remember { mutableStateOf<String?>(null) }
     var dialogMessage by remember { mutableStateOf("") }
 
@@ -60,25 +89,74 @@ fun TasksScreen(onNavigateToCreateTask: () -> Unit, onNavigateToTaskDetail: (Int
     }
 
     val today = LocalDate.now()
-    val filteredTasks = TasksTestData.tasks.filter { task ->
+    val now = LocalDateTime.now()
+
+    val filteredTasks = tasks.filter { task ->
         if (selectedFilters.isEmpty()) true
         else {
             val isMineSelected = selectedFilters.contains(stringResource(R.string.filter_mine))
             val projectFilters = selectedFilters.filter { it.startsWith("Проект") }
-            (isMineSelected && task.isMine) || projectFilters.any { task.projectName == it }
+
+            val isMine = task.executorRef?.id == currentUserId || task.authorRef?.id == currentUserId
+
+            // Пока фильтруем по ID проекта (projectRef.id).
+            // Когда появится кэш имён проектов — заменим на сравнение по имени.
+            val matchesProject = projectFilters.any { filterName ->
+                task.projectRef?.id == filterName || task.projectRef?.path?.contains(filterName) == true
+            }
+
+            (isMineSelected && isMine) || matchesProject
         }
     }
 
+
+
     val groups = when (grouping) {
         TaskGrouping.STATUS -> listOf(
-            TaskGroup("TODO", stringResource(R.string.tasks_group_planned), filteredTasks.filter { it.status == TaskStatus.TODO }),
-            TaskGroup("IN_PROGRESS", stringResource(R.string.tasks_group_active), filteredTasks.filter { it.status == TaskStatus.IN_PROGRESS }),
-            TaskGroup("DONE", stringResource(R.string.tasks_group_completed), filteredTasks.filter { it.status == TaskStatus.DONE })
+            TaskGroup(
+                "TODO",
+                stringResource(R.string.tasks_group_planned),
+                filteredTasks.filter { it.status == TaskStatus.TODO }
+            ),
+            TaskGroup(
+                "IN_PROCESS",
+                stringResource(R.string.tasks_group_active),
+                filteredTasks.filter { it.status == TaskStatus.IN_PROCESS }
+            ),
+            TaskGroup(
+                "DONE",
+                stringResource(R.string.tasks_group_completed),
+                filteredTasks.filter { it.status == TaskStatus.DONE }
+            )
         )
         TaskGrouping.DEADLINE -> listOf(
-            TaskGroup("TODAY", stringResource(R.string.tasks_group_today), filteredTasks.filter { it.dueDate == today }.sortedBy { it.dueDate }),
-            TaskGroup("THIS_WEEK", stringResource(R.string.tasks_group_this_week), filteredTasks.filter { it.dueDate.isAfter(today) && !it.dueDate.isAfter(today.plusDays(6)) }.sortedBy { it.dueDate }),
-            TaskGroup("NEXT_WEEK", stringResource(R.string.tasks_group_next_week), filteredTasks.filter { it.dueDate.isAfter(today.plusDays(6)) && !it.dueDate.isAfter(today.plusDays(13)) }.sortedBy { it.dueDate })
+            TaskGroup(
+                "TODAY",
+                stringResource(R.string.tasks_group_today),
+                filteredTasks
+                    .filter { it.deadline.toLocalDate() == today }
+                    .sortedBy { it.deadline }
+            ),
+            TaskGroup(
+                "THIS_WEEK",
+                stringResource(R.string.tasks_group_this_week),
+                filteredTasks
+                    .filter {
+                        val d = it.deadline.toLocalDate()
+                        d.isAfter(today) && !d.isAfter(today.plusDays(6))
+                    }
+                    .sortedBy { it.deadline }
+            ),
+            TaskGroup(
+                "NEXT_WEEK",
+                stringResource(R.string.tasks_group_next_week),
+                filteredTasks
+                    .filter {
+                        val d = it.deadline.toLocalDate()
+                        d.isAfter(today.plusDays(6)) && !d.isAfter(today.plusDays(13))
+                    }
+                    .sortedBy { it.deadline }
+            )
         )
     }
 
@@ -137,6 +215,7 @@ fun TasksScreen(onNavigateToCreateTask: () -> Unit, onNavigateToTaskDetail: (Int
                 Column(modifier = Modifier.fillMaxWidth().padding(bottom = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding() + 2.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Row(modifier = Modifier.widthIn(max = 330.dp).fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         SortFilterPanel(
+                            tasks = tasks, // <-- ДОБАВЛЕНО: передаем реальные задачи из ViewModel
                             modifier = Modifier.weight(1f),
                             grouping = grouping,
                             onGroupingChange = { newGrouping -> grouping = newGrouping; collapsedGroups = emptySet() },
@@ -182,7 +261,7 @@ fun TasksScreen(onNavigateToCreateTask: () -> Unit, onNavigateToTaskDetail: (Int
 }
 
 @Composable
-private fun TaskGroupCard(group: TaskGroup, expanded: Boolean, onToggle: () -> Unit, onTaskClick: (Task) -> Unit) {
+private fun TaskGroupCard(group: TaskGroup, expanded: Boolean, onToggle: () -> Unit, onTaskClick: (TaskModel) -> Unit) {
     CoFlowGlassCard(modifier = Modifier.fillMaxWidth().clickable(onClick = onToggle)) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(text = group.title, fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
@@ -212,24 +291,52 @@ private fun TaskGroupCard(group: TaskGroup, expanded: Boolean, onToggle: () -> U
 }
 
 @Composable
-private fun TaskRow(task: Task, onClick: () -> Unit) {
+private fun TaskRow(task: TaskModel, onClick: () -> Unit) {
     val formatter = remember { DateTimeFormatter.ofPattern("dd.MM.yy") }
+    val today = LocalDate.now()
+    val taskDate = task.deadline.toLocalDate()
+
+    // Пока показываем ID проекта как временное решение.
+    // Позже здесь будет резолв имени из кэша проектов.
+    val projectNameDisplay = task.projectRef?.id ?: "Без проекта"
+
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp).clickable { onClick() }) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = task.title, fontSize = 12.sp, fontWeight = FontWeight.Medium,
+                text = task.title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
                 color = if (task.status == TaskStatus.DONE) CoFlowColors.TextSecondary else CoFlowColors.TextPrimary,
-                maxLines = 1, overflow = TextOverflow.Ellipsis, modifier = Modifier.weight(1f)
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
             )
-            if (task.dueDate.isBefore(LocalDate.now()) && task.status != TaskStatus.DONE) {
+            if (taskDate.isBefore(today) && task.status != TaskStatus.DONE) {
                 Spacer(Modifier.width(4.dp))
-                Text(text = stringResource(R.string.task_outdated), fontSize = 8.sp, color = CoFlowColors.Error)
+                Text(
+                    text = stringResource(R.string.task_outdated),
+                    fontSize = 8.sp,
+                    color = CoFlowColors.Error
+                )
             }
         }
         Spacer(Modifier.height(3.dp))
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text(text = task.projectName, fontSize = 10.sp, color = CoFlowColors.TextSecondary, maxLines = 1)
-            Text(text = task.dueDate.format(formatter), fontSize = 10.sp, color = CoFlowColors.TextSecondary)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = projectNameDisplay,
+                fontSize = 10.sp,
+                color = CoFlowColors.TextSecondary,
+                maxLines = 1
+            )
+            Text(
+                text = taskDate.format(formatter),
+                fontSize = 10.sp,
+                color = CoFlowColors.TextSecondary
+            )
         }
     }
 }
@@ -237,6 +344,7 @@ private fun TaskRow(task: Task, onClick: () -> Unit) {
 // --- Внутренние компоненты для панели фильтров ---
 @Composable
 private fun SortFilterPanel(
+    tasks: List<TaskModel>, // <-- ДОБАВЛЕНО: теперь функция видит список задач
     modifier: Modifier = Modifier,
     grouping: TaskGrouping,
     onGroupingChange: (TaskGrouping) -> Unit,
@@ -278,7 +386,16 @@ private fun SortFilterPanel(
                 }
             }
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }, shape = RoundedCornerShape(16.dp), containerColor = Color(0xFFF4F8FF).copy(alpha = 0.62f), tonalElevation = 0.dp, shadowElevation = 0.dp, border = BorderStroke(1.dp, Color.White.copy(alpha = 0.82f))) {
-                listOf(stringResource(R.string.filter_none), stringResource(R.string.filter_mine), "Проект 1", "Проект 2", "Проект 3").forEach { option ->
+                // Берем реальные ID проектов из загруженных задач, убираем дубликаты
+                val realProjectIds = tasks.mapNotNull { it.projectRef?.id }.distinct()
+
+                // Формируем итоговый список: базовые фильтры + реальные проекты из БД
+                val availableFilters = listOf(
+                    stringResource(R.string.filter_none),
+                    stringResource(R.string.filter_mine)
+                ) + realProjectIds
+
+                availableFilters.forEach { option ->
                     GlassFilterOption(title = option, selected = selectedFilters.contains(option)) { onFilterToggle(option) }
                 }
             }
@@ -323,9 +440,10 @@ private fun GlassFilterOption(title: String, selected: Boolean, onClick: () -> U
 @Composable
 private fun TasksScreenPreview() {
     CoFlowTheme {
+        // ViewModel создается автоматически, параметр tasks удален, так как экран сам управляет данными
         TasksScreen(
             onNavigateToCreateTask = { println("🔥 PREVIEW: Нажата кнопка создания задачи (+)") },
-            onNavigateToTaskDetail = { id -> println("PREVIEW: Нажата задача с ID: $id") } // <--- ДОБАВИЛИ ВОТ ЭТО
+            onNavigateToTaskDetail = { id: String -> println("PREVIEW: Нажата задача с ID: $id") }
         )
     }
 }

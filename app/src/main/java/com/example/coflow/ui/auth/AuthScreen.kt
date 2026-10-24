@@ -22,6 +22,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.coflow.R
 import com.example.coflow.ui.components.*
 import com.example.coflow.ui.theme.*
+import androidx.compose.runtime.LaunchedEffect
 
 @Composable
 fun AuthScreen(
@@ -139,9 +140,16 @@ fun AuthScreen(
 }
 
 @Composable
-fun AuthRoute(onAuthSuccess: () -> Unit,
-              viewModel: AuthViewModel = viewModel()) {
+fun AuthRoute(onAuthSuccess: () -> Unit, viewModel: AuthViewModel = viewModel()) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+
+    LaunchedEffect(state.isAuthorized) {
+        if (state.isAuthorized) {
+            onAuthSuccess()
+        }
+    }
+
     AuthScreen(
         state = state,
         onUsernameChange = viewModel::onUsernameChange,
@@ -149,7 +157,7 @@ fun AuthRoute(onAuthSuccess: () -> Unit,
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmChange = viewModel::onConfirmChange,
         onToggleMode = viewModel::onToggleMode,
-        onSubmit = { viewModel.onSubmit(onAuthSuccess) }
+        onSubmit = { viewModel.onSubmit() }
     )
 }
 
