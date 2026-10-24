@@ -92,4 +92,11 @@
         <string name="navigation_projects">Projects</string>
         <string name="navigation_profile">Profile</string>
 
+        <!-- Количество выбранных исполнителей -->
+        <string name="no_assignees_selected">Никто не выбран</string>
+
+        <plurals name="selected_assignees_count">
+            <item quantity="one">Selected %d assignee</item>
+            <item quantity="other">Selected %d assignees</item>
+        </plurals>
 </resources>

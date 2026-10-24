@@ -26,6 +26,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.stringResource
 import com.example.coflow.R
+import androidx.compose.ui.res.pluralStringResource
 
 data class Assignee(val id: String, val name: String, val email: String, val initials: String, val avatarColor: Color)
 
@@ -44,17 +45,6 @@ fun ChooseAssigneeScreen(onBackClick: () -> Unit, onConfirmSelection: (List<Assi
     var selectedIds by remember { mutableStateOf(setOf("1")) }
     val filteredAssignees = allAssignees.filter { it.name.contains(searchQuery, ignoreCase = true) || it.email.contains(searchQuery, ignoreCase = true) }
     val focusManager = LocalFocusManager.current
-
-    fun getSelectedText(count: Int): String {
-        if (count == 0) return "Никто не выбран"
-        val word = when {
-            count % 100 in 11..19 -> "исполнителей"
-            count % 10 == 1 -> "исполнитель"
-            count % 10 in 2..4 -> "исполнителя"
-            else -> "исполнителей"
-        }
-        return "Выбран $count $word"
-    }
 
     BackHandler(onBack = onBackClick)
 
@@ -116,8 +106,21 @@ fun ChooseAssigneeScreen(onBackClick: () -> Unit, onConfirmSelection: (List<Assi
             }
 
             Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 16.dp)) {
+                val selectedCount = selectedIds.size
+
+                // Определяем текст с учетом специального случая для 0
+                val selectedText = if (selectedCount == 0) {
+                    stringResource(R.string.no_assignees_selected)
+                } else {
+                    pluralStringResource(
+                        id = R.plurals.selected_assignees_count,
+                        count = selectedCount,
+                        selectedCount
+                    )
+                }
+
                 Text(
-                    text = getSelectedText(selectedIds.size),
+                    text = selectedText,
                     modifier = Modifier.padding(bottom = 12.dp, start = 4.dp),
                     fontSize = 12.sp, fontWeight = FontWeight.Medium, color = CoFlowColors.TextPrimary
                 )
