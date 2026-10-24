@@ -60,7 +60,7 @@ fun ChooseProjectScreen(onBackClick: () -> Unit, onConfirmSelection: (String) ->
                 items(filteredProjects) { project ->
                     val isSelected = project == selectedProject
 
-                    // ИСПРАВЛЕНО: передаем isSelected в карточку
+
                     CoFlowGlassCard(
                         isSelected = isSelected,
                         modifier = Modifier.height(52.dp).clickable { selectedProject = project }

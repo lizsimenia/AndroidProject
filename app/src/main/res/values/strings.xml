@@ -11,6 +11,7 @@
     <string name="choose_project_header">Выбор проекта</string>
     <string name="choose_date_header">Дата окончания</string>
     <string name="choose_assignee_header">Добавить исполнителя</string>
+    <string name="task_description_header">Задача</string>
 
     <!-- Поля ввода -->
     <string name="auth_label_username">Имя пользователя</string>
@@ -91,4 +92,31 @@
     <string name="navigation_projects">Проекты</string>
     <string name="navigation_profile">Профиль</string>
 
+    <!-- Количество выбранных исполнителей -->
+    <string name="no_assignees_selected">Никто не выбран</string>
+
+    <plurals name="selected_assignees_count">
+        <item quantity="one">Выбран %d исполнитель</item>
+        <item quantity="few">Выбрано %d исполнителя</item>
+        <item quantity="many">Выбрано %d исполнителей</item>
+        <item quantity="other">Выбрано %d исполнителей</item>
+    </plurals>
+
+    <!-- Описание задачи-->
+    <string name="description_header">Описание</string>
+    <string name="description_placeholder">Описание отсутстсвует</string>
+
+    <string name="author_header">Автор задачи</string>
+    <string name="author_placeholder">Неизвестно</string>
+
+    <string name="assignees_header">Исполнители</string>
+    <string name="assignees_placeholder">Нет исполнителей</string>
+    <plurals name="task_selected_assignees_count">
+        <item quantity="one">Вы и ещё %d участник</item>
+        <item quantity="few">Вы и ещё %d участника</item>
+        <item quantity="many">Вы и ещё %d участников</item>
+        <item quantity="other">Вы и ещё %d участников</item>
+    </plurals>
+
+    <string name="deadline_header">Дата окончания</string>
 </resources>

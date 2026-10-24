@@ -11,6 +11,8 @@
         <string name="choose_project_header">Choose project</string>
         <string name="choose_date_header">Deadline</string>
         <string name="choose_assignee_header">Add assignee</string>
+        <string name="task_description_header">Task</string>
+
 
 
         <!-- Поля ввода -->
@@ -92,4 +94,27 @@
         <string name="navigation_projects">Projects</string>
         <string name="navigation_profile">Profile</string>
 
+        <!-- Количество выбранных исполнителей -->
+        <string name="no_assignees_selected">Никто не выбран</string>
+
+        <plurals name="selected_assignees_count">
+            <item quantity="one">Selected %d assignee</item>
+            <item quantity="other">Selected %d assignees</item>
+        </plurals>
+
+    <!-- Описание задачи-->
+    <string name="description_header">Description</string>
+    <string name="description_placeholder">No description provided</string>
+
+    <string name="author_header">The author of the task</string>
+    <string name="author_placeholder">Unknown</string>
+
+    <string name="assignees_header">Assignees</string>
+    <string name="assignees_placeholder">No assignees</string>
+    <plurals name="task_selected_assignees_count">
+        <item quantity="one">You and %d more assignee</item>
+        <item quantity="other">You and %d more assignees</item>
+    </plurals>
+
+    <string name="deadline_header">Deadline</string>
 </resources>

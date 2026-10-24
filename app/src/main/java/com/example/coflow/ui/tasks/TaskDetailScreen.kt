@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,6 +24,10 @@ import com.example.coflow.models.TaskStatus
 import com.example.coflow.ui.components.*
 import com.example.coflow.ui.theme.*
 import java.time.format.DateTimeFormatter
+import com.example.coflow.R
+import androidx.compose.ui.res.pluralStringResource
+import org.checkerframework.checker.units.qual.s
+import androidx.annotation.StringRes
 
 @Composable
 fun TaskDetailScreen(
@@ -40,7 +45,7 @@ fun TaskDetailScreen(
     ) {
         Column(modifier = Modifier.fillMaxSize().navigationBarsPadding().imePadding().padding(horizontal = CoFlowSpacing.ScreenHorizontal)) {
             CoFlowScreenHeader(
-                title = "Задача",
+                title = stringResource(R.string.task_description_header),
                 onBackClick = onBackClick,
                 trailingContent = {
                     // Карандаш (показываем только если статус TODO)
@@ -86,16 +91,16 @@ fun TaskDetailScreen(
 
                         // Теги
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TagChip(text = getStatusText(task.status))
+                            TagChip(text = stringResource(getStatusTextRes(task.status)))
                             TagChip(text = task.projectName)
                         }
 
                         // Описание
                         Column {
-                            Text("Описание", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
+                            Text(stringResource(R.string.description_header), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = task.description.ifBlank { "Описание отсутствует" },
+                                text = task.description.ifBlank { stringResource(R.string.description_placeholder) },
                                 fontSize = 13.sp,
                                 color = CoFlowColors.TextSecondary
                             )
@@ -103,10 +108,10 @@ fun TaskDetailScreen(
 
                         // Автор
                         Column {
-                            Text("Автор задачи", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
+                            Text(stringResource(R.string.author_header), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = task.author.ifBlank { "Неизвестно" },
+                                text = task.author.ifBlank { stringResource(R.string.author_placeholder) },
                                 fontSize = 13.sp,
                                 color = CoFlowColors.TextSecondary
                             )
@@ -114,7 +119,7 @@ fun TaskDetailScreen(
 
                         // Исполнители
                         Column {
-                            Text("Исполнители", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
+                            Text(stringResource(R.string.assignees_header), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(8.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -124,9 +129,17 @@ fun TaskDetailScreen(
                                 Spacer(Modifier.width(12.dp))
 
                                 val assigneeText = when {
-                                    task.assignees.isEmpty() -> "Нет исполнителей"
+                                    task.assignees.isEmpty() -> stringResource(R.string.assignees_placeholder)
                                     task.assignees.size == 1 -> task.assignees.first()
-                                    else -> "Вы и еще ${task.assignees.size - 1} участник(а)"
+                                    else ->
+                                    {
+                                        val assignees_count = task.assignees.size - 1
+                                        pluralStringResource(
+                                            id = R.plurals.task_selected_assignees_count,
+                                            count = assignees_count,
+                                            assignees_count
+                                        )
+                                    }
                                 }
 
                                 Text(
@@ -142,7 +155,7 @@ fun TaskDetailScreen(
                         // Дата
                         Column {
                             Text(
-                                "Дата окончания",
+                                stringResource(R.string.deadline_header),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold,
                                 color = CoFlowColors.TextPrimary
@@ -198,10 +211,11 @@ private fun TagChip(text: String) {
     }
 }
 
-private fun getStatusText(status: TaskStatus): String {
+@StringRes
+private fun getStatusTextRes(status: TaskStatus): Int {
     return when (status) {
-        TaskStatus.TODO -> "К исполнению"
-        TaskStatus.IN_PROGRESS -> "В процессе"
-        TaskStatus.DONE -> "Сделано"
+        TaskStatus.TODO -> R.string.tasks_group_planned
+        TaskStatus.IN_PROGRESS -> R.string.tasks_group_active
+        TaskStatus.DONE -> R.string.tasks_group_completed
     }
 }
