@@ -18,15 +18,20 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.coflow.data.Task
 import com.example.coflow.models.TaskStatus
 import com.example.coflow.ui.components.*
 import com.example.coflow.ui.theme.*
 import java.time.format.DateTimeFormatter
+import com.example.coflow.models.TaskModel
+import java.time.LocalDate
+import androidx.compose.ui.res.stringResource
+import androidx.annotation.StringRes
+import com.example.coflow.R
+import androidx.compose.ui.res.pluralStringResource
 
 @Composable
 fun TaskDetailScreen(
-    task: Task,
+    task: TaskModel,
     onBackClick: () -> Unit,
     onEditClick: () -> Unit,
 ) {
@@ -87,8 +92,8 @@ fun TaskDetailScreen(
 
                         // Теги
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TagChip(text = stringResource(getStatusTextRes(task.status)))
-                            TagChip(text = task.projectName)
+                            TagChip(text = getStatusText(task.status))
+                            TagChip(text = task.projectId ?: "Мое")
                         }
 
                         // Описание
@@ -107,7 +112,7 @@ fun TaskDetailScreen(
                             Text(stringResource(R.string.author_header), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(4.dp))
                             Text(
-                                text = task.author.ifBlank { stringResource(R.string.author_placeholder) },
+                                text = task.authorId ?: stringResource(R.string.author_placeholder),
                                 fontSize = 13.sp,
                                 color = CoFlowColors.TextSecondary
                             )
@@ -123,27 +128,28 @@ fun TaskDetailScreen(
                             ) {
                                 CoFlowIcon(name = "person", modifier = Modifier.size(24.dp), color = CoFlowColors.TextSecondary)
                                 Spacer(Modifier.width(12.dp))
+//                                val assigneesList = task.assignees
+//
+//                                val assigneeText = when {
+//                                    task.executorId.isEmpty() -> stringResource(R.string.assignees_placeholder)
+//                                    task.executorId.size == 1 -> task.executorId.first()
+//                                    else ->
+//                                    {
+//                                        val assignees_count = task.executorId.size - 1
+//                                        pluralStringResource(
+//                                            id = R.plurals.task_selected_assignees_count,
+//                                            count = assignees_count,
+//                                            assignees_count
+//                                        )
+//                                    }
+ //                               }
 
-                                val assigneeText = when {
-                                    task.assignees.isEmpty() -> stringResource(R.string.assignees_placeholder)
-                                    task.assignees.size == 1 -> task.assignees.first()
-                                    else ->
-                                    {
-                                        val assignees_count = task.assignees.size - 1
-                                        pluralStringResource(
-                                            id = R.plurals.task_selected_assignees_count,
-                                            count = assignees_count,
-                                            assignees_count
-                                        )
-                                    }
-                                }
-
-                                Text(
-                                    text = assigneeText,
-                                    fontSize = 13.sp,
-                                    color = CoFlowColors.TextPrimary,
-                                    modifier = Modifier.weight(1f)
-                                )
+//                                Text(
+//                                    text = assigneeText,
+//                                    fontSize = 13.sp,
+//                                    color = CoFlowColors.TextPrimary,
+//                                    modifier = Modifier.weight(1f)
+//                                )
                                 CoFlowIcon(name = "chevron", modifier = Modifier.size(16.dp), color = CoFlowColors.Blue)
                             }
                         }
@@ -165,9 +171,9 @@ fun TaskDetailScreen(
                                 )
                                 Spacer(Modifier.width(12.dp))
                                 Text(
-                                    task.dueDate.format(formatter),
+                                    taskDate.format(formatter),
                                     fontSize = 13.sp,
-                                    color = if (task.dueDate.isBefore(java.time.LocalDate.now()) && task.status != TaskStatus.DONE) CoFlowColors.Error else CoFlowColors.TextPrimary
+                                    color = if (taskDate.isBefore(java.time.LocalDate.now()) && task.status != TaskStatus.DONE) CoFlowColors.Error else CoFlowColors.TextPrimary
                                 )
                             }
                         }
@@ -207,12 +213,10 @@ private fun TagChip(text: String) {
     }
 }
 
-@StringRes
-// Статус задачи
-private fun getStatusTextRes(status: TaskStatus): Int {
-    return when (status) {
-        TaskStatus.TODO -> R.string.tasks_group_planned
-        TaskStatus.IN_PROGRESS -> R.string.tasks_group_active
-        TaskStatus.DONE -> R.string.tasks_group_completed
+
+private fun getStatusText(status: TaskStatus): String =
+    when (status) {
+        TaskStatus.TODO -> "К исполнению"
+        TaskStatus.IN_PROCESS -> "В процессе"
+        TaskStatus.DONE -> "Сделано"
     }
-}

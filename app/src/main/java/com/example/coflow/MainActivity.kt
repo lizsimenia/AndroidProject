@@ -4,17 +4,29 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.coflow.ui.auth.AuthRoute
+import com.example.coflow.ui.tasks.ChooseAssigneeRoute
 import com.example.coflow.ui.tasks.ChooseAssigneeScreen
+import com.example.coflow.ui.tasks.ChooseDateRoute
 import com.example.coflow.ui.tasks.ChooseDateScreen
+import com.example.coflow.ui.tasks.ChooseProjectRoute
 import com.example.coflow.ui.tasks.ChooseProjectScreen
+import com.example.coflow.ui.tasks.TaskDetailViewModel
+import com.example.coflow.ui.tasks.CreateTaskViewModel
 import com.example.coflow.ui.tasks.CreateTaskRoute
 import com.example.coflow.ui.tasks.TaskDetailScreen
 import com.example.coflow.ui.tasks.TasksScreen
@@ -41,12 +53,13 @@ class MainActivity : ComponentActivity() {
 
                 if (isAuthenticated) {
                     val navController = rememberNavController()
+                    val createTaskViewModel: CreateTaskViewModel = viewModel()
 
                     NavHost(navController = navController, startDestination = Screen.TASKS) {
                         composable(Screen.TASKS) {
                             TasksScreen(
                                 onNavigateToCreateTask = { navController.navigate(Screen.CREATE_TASK) },
-                                onNavigateToTaskDetail = { taskId -> navController.navigate("task_detail/$taskId") }
+                                onNavigateToTaskDetail = { taskId -> navController.navigate("task_detail/$taskId") },
                             )
                         }
 
