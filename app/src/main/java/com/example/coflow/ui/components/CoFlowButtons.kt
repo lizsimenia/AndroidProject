@@ -56,8 +56,8 @@ fun CoFlowPrimaryButton(
 @Composable
 fun CoFlowFabButton(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit = { Text(text = "+", fontSize = 27.sp, fontWeight = FontWeight.Light, color = Color.White) }
+    iconName: String,
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -67,7 +67,9 @@ fun CoFlowFabButton(
             .background(CoFlowColors.Blue)
             .clickable { onClick() },
         contentAlignment = Alignment.Center
-    ) { content() }
+    ) {
+        CoFlowIcon(name = iconName, modifier = Modifier.size(24.dp), Color.White)
+    }
 }
 
 // 3. Стеклянная кнопка-иконка (для колокольчика и т.д.)

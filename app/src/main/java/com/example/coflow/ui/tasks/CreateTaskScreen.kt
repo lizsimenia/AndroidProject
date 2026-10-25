@@ -7,8 +7,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
@@ -17,85 +17,100 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.coflow.ui.components.*
-import com.example.coflow.ui.theme.*
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.coflow.R
+import com.example.coflow.ui.components.*
+import com.example.coflow.ui.theme.*
 
 @Composable
 fun CreateTaskScreen(
     state: CreateTaskUiState,
     onBackClick: () -> Unit,
-    onCreateTask: (CreateTaskFormData) -> Unit,
+    onTitleChange: (String) -> Unit,
+    onDescriptionChange: (String) -> Unit,
     onNavigateToAssignees: () -> Unit,
     onNavigateToProject: () -> Unit,
     onNavigateToDate: () -> Unit,
-    onTitleChange: (String) -> Unit,
-    onDescriptionChange: (String) -> Unit,
-    onAssigneesChange: (String) -> Unit,
-    onProjectChange: (String) -> Unit,
-    onDueDateChange: (String) -> Unit,
+    onCreateTask: () -> Unit
 ) {
     val focusManager = LocalFocusManager.current
 
     BackHandler(onBack = onBackClick)
 
     Box(modifier = Modifier.fillMaxSize().background(coFlowTasksBackgroundBrush())) {
-            Column(modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = CoFlowSpacing.ScreenHorizontal)) {
+        Column(modifier = Modifier.fillMaxSize().navigationBarsPadding().padding(horizontal = CoFlowSpacing.ScreenHorizontal)) {
 
+            // Заголовок экрана создания задачи
             CoFlowScreenHeader(
                 title = stringResource(R.string.create_task_header),
                 onBackClick = { focusManager.clearFocus(); onBackClick() }
             )
 
+            // Скроллящаяся форма
             Column(modifier = Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                // Название задачи
                 CoFlowGlassTextField(
                     label = stringResource(R.string.creation_task_name_label), value = state.title, onValueChange = onTitleChange,
                     placeholder = stringResource(R.string.creation_task_name_placeholder)
                 )
+
+                // Описание
                 CoFlowGlassTextField(
-                    label = stringResource(R.string.creation_task_description_label), value = state.description, onValueChange = onDescriptionChange,
-                    placeholder = stringResource(R.string.creation_task_description_placeholder), singleLine = false, maxLength = 250
+                    value = state.description,
+                    onValueChange = onDescriptionChange,
+                    label = stringResource(R.string.creation_task_description_label),
+                    placeholder = stringResource(R.string.creation_task_description_placeholder),
+                    singleLine = false,
+                    maxLength = 250
                 )
 
-                // Клик сработает по ВСЕМУ полю. Клавиатура не вылезет благодаря readOnly
+                // Исполнители
                 CoFlowGlassTextField(
-                    label = stringResource(R.string.creation_task_assignee_label), value = state.assignees, onValueChange = onAssigneesChange,
-                    placeholder = stringResource(R.string.creation_task_assignee_placeholder), leadingIcon = "person", trailingIcon = "chevron",
+                    value = state.assignees.joinToString(", ") { it.name },
+                    onValueChange = { },
+                    label = stringResource(R.string.creation_task_assignee_label),
+                    placeholder = stringResource(R.string.creation_task_assignee_placeholder),
+                    leadingIcon = "person",
+                    trailingIcon = "chevron",
                     onClick = { onNavigateToAssignees() }
                 )
 
+                // Проект
                 CoFlowGlassTextField(
-                    label = stringResource(R.string.creation_task_project_label), value = state.project, onValueChange = onProjectChange,
-                    placeholder = stringResource(R.string.creation_task_project_placeholder), leadingIcon = "folder", trailingIcon = "chevron",
+                    value = state.project,
+                    onValueChange = { },
+                    label = stringResource(R.string.creation_task_project_label),
+                    placeholder = stringResource(R.string.creation_task_project_placeholder),
+                    leadingIcon = "folder",
+                    trailingIcon = "chevron",
                     onClick = { onNavigateToProject() }
                 )
 
+                // Дата окончания
                 CoFlowGlassTextField(
-                    label = stringResource(R.string.creation_task_deadline_label), value = state.dueDate, onValueChange = onDueDateChange,
-                    placeholder = stringResource(R.string.creation_task_deadline_placeholder), leadingIcon = "calendar", trailingIcon = "chevron",
+                    value = state.dueDate,
+                    onValueChange = { },
+                    label = stringResource(R.string.creation_task_deadline_label),
+                    placeholder = stringResource(R.string.creation_task_deadline_placeholder),
+                    leadingIcon = "calendar",
+                    trailingIcon = "chevron",
                     onClick = { onNavigateToDate() },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text, imeAction = ImeAction.Done),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Done
+                    ),
                     keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
                 )
             }
 
+            // Кнопка создания
             CoFlowPrimaryButton(
                 text = stringResource(R.string.create_task_button),
                 onClick = {
                     focusManager.clearFocus()
-                    onCreateTask(
-                        CreateTaskFormData(
-                            title = state.title.trim(),
-                            description = state.description.trim(),
-                            assignees = state.assignees.trim(),
-                            project = state.project.trim(),
-                            dueDate = state.dueDate.trim()
-                        )
-                    )
+                    onCreateTask()
                 },
-                enabled = state.canCreate,
-                modifier = Modifier.padding(top = 8.dp, bottom = 16.dp)
+                enabled = state.canCreate
             )
         }
     }
@@ -115,34 +130,33 @@ fun CreateTaskRoute(
     CreateTaskScreen(
         state = state,
         onBackClick = onBackClick,
-        onCreateTask = { viewModel.onCreateTask(onTaskCreated) },
+        onTitleChange = viewModel::onTitleChange,
+        onDescriptionChange = viewModel::onDescriptionChange,
         onNavigateToAssignees = onNavigateToAssignees,
         onNavigateToProject = onNavigateToProject,
         onNavigateToDate = onNavigateToDate,
-        onTitleChange = viewModel::onTitleChange,
-        onDescriptionChange = viewModel::onDescriptionChange,
-        onAssigneesChange = viewModel::onAssigneesChange,
-        onProjectChange = viewModel::onProjectChange,
-        onDueDateChange = viewModel::onDueDateChange
+        onCreateTask = { viewModel.onCreateTask(onTaskCreated) }
     )
 }
 
-@Preview(name = "Создание задачи", showBackground = true, widthDp = 390, heightDp = 844)
+@Preview(
+    name = "Создание задачи",
+    showBackground = true,
+    widthDp = 390,
+    heightDp = 844
+)
 @Composable
 private fun CreateTaskScreenPreview() {
     CoFlowTheme {
         CreateTaskScreen(
             state = CreateTaskUiState(),
-            onBackClick = { println("Preview: Назад") },
-            onCreateTask = { println("Preview: Создание задачи: $it") },
-            onNavigateToAssignees = { println("Preview: Переход к выбору исполнителей") },
-            onNavigateToProject = { println("Preview: Переход к выбору проекта") },
-            onNavigateToDate = { println("Preview: Переход к выбору даты") },
-            onTitleChange = { },
-            onDescriptionChange = { },
-            onAssigneesChange = { },
-            onProjectChange = { },
-            onDueDateChange = { }
+            onBackClick = {},
+            onTitleChange = {},
+            onDescriptionChange = {},
+            onNavigateToAssignees = {},
+            onNavigateToProject = {},
+            onNavigateToDate = {},
+            onCreateTask = {}
         )
     }
 }

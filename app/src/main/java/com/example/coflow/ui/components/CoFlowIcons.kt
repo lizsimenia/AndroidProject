@@ -86,6 +86,16 @@ fun CoFlowIcon(
                 val innerPath = Path().apply { moveTo(4.5f * s, 16.5f * s); lineTo(7.5f * s, 19.5f * s); lineTo(3.5f * s, 20.5f * s); close() }
                 drawPath(innerPath, color, style = stroke)
             }
+            "folder_plus" -> {
+                val path = Path().apply { moveTo(4f * s, 20f * s); lineTo(4f * s, 6f * s); lineTo(9f * s, 6f * s); lineTo(11f * s, 8f * s); lineTo(20f * s, 8f * s); lineTo(20f * s, 14f * s); moveTo(4f * s, 20f * s); lineTo(11f * s, 20f * s) }
+                drawPath(path, color, style = stroke)
+                drawLine(color, point(16.5f, 15.5f), point(16.5f, 22.5f), 2.2f * s, StrokeCap.Round); drawLine(color, point(13f, 19f), point(20f, 19f), 2.2f * s, StrokeCap.Round)
+            }
+            "task_plus" -> {
+                val path = Path().apply { moveTo(5f * s, 20f * s); lineTo(5f * s, 6f * s); lineTo(9f * s, 6f * s); lineTo(9f * s, 4f * s); lineTo(15f * s, 4f * s); lineTo(15f * s, 6f * s); lineTo(19f * s, 6f * s); lineTo(19f * s, 14f * s); moveTo(9f * s, 7f * s); lineTo(15f * s, 7f * s); moveTo(5f * s, 20f * s); lineTo(11f * s, 20f * s) }
+                drawPath(path, color, style = stroke)
+                drawLine(color, point(16.5f, 14.5f), point(16.5f, 21.5f), 2.2f * s, StrokeCap.Round); drawLine(color, point(13f, 18f), point(20f, 18f), 2.2f * s, StrokeCap.Round)
+            }
         }
     }
 }

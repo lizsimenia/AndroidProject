@@ -11,6 +11,8 @@
         <string name="choose_project_header">Choose project</string>
         <string name="choose_date_header">Deadline</string>
         <string name="choose_assignee_header">Add assignee</string>
+        <string name="task_description_header">Task</string>
+
 
 
         <!-- Поля ввода -->
@@ -87,9 +89,51 @@
         <string name="filter_none">No filter</string>
         <string name="filter_mine">Mine</string>
 
+        <!-- Notifications -->
+        <string name="notification_title">Notifications</string>
+        <string name="notification_message">Notifications interface not implemented yet.</string>
+        <string name="dialog_ok">Got it</string>
+
         <!-- Навигация -->
         <string name="navigation_tasks">My tasks</string>
         <string name="navigation_projects">Projects</string>
         <string name="navigation_profile">Profile</string>
 
+        <!-- Экран Проекты -->
+        <string name="projects_header">Projects</string>
+        <string name="project_search_placeholder">Project name</string>
+        <string name="project_status_in_progress">In progress</string>
+        <string name="project_status_archive">Archive</string>
+        <string name="project_filter_title">Filter</string>
+        <string name="project_empty_state">No projects found</string>
+
+        <!-- Фильтры проектов -->
+        <string name="project_filter_all">All</string>
+        <string name="project_filter_management">Management</string>
+        <string name="project_filter_participation">Participation</string>
+        <string name="project_filter_archive">Archive</string>
+
+        <!-- Количество выбранных исполнителей -->
+        <string name="no_assignees_selected">No one is chosen</string>
+
+        <plurals name="selected_assignees_count">
+            <item quantity="one">Selected %d assignee</item>
+            <item quantity="other">Selected %d assignees</item>
+        </plurals>
+
+    <!-- Описание задачи-->
+    <string name="description_header">Description</string>
+    <string name="description_placeholder">No description provided</string>
+
+    <string name="author_header">The author of the task</string>
+    <string name="author_placeholder">Unknown</string>
+
+    <string name="assignees_header">Assignees</string>
+    <string name="assignees_placeholder">No assignees</string>
+    <plurals name="task_selected_assignees_count">
+        <item quantity="one">You and %d more assignee</item>
+        <item quantity="other">You and %d more assignees</item>
+    </plurals>
+
+    <string name="deadline_header">Deadline</string>
 </resources>
