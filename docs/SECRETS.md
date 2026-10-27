@@ -78,7 +78,7 @@ doppler setup          # читает .doppler.yaml → project coflow / config 
 2. GitHub → репозиторий → **Settings → Secrets and variables → Actions → New repository secret**:
    - Name: `DOPPLER_TOKEN`
    - Value: скопированный токен.
-3. Всё. `.github/workflows/ci.yml` сам делает `doppler secrets download --format json`
+3. Всё. `.github/workflows/push.yml` сам делает `doppler secrets download --format json`
    и складывает результат в `$GITHUB_ENV`.
 
 > Для релизного пайплайна — второй токен на конфиг `prd` (secret `DOPPLER_TOKEN_PRD`).
@@ -100,7 +100,9 @@ make test
 make secrets        # ./scripts/sync-secrets.sh → app/google-services.json
 ```
 
-**В CI:** ничего, push → зелёный билд.
+**В CI:** ничего. Push проверяет реальные секреты из Doppler, а PR собирается
+с mock-конфигом `.github/mock-google-services.json` и Firebase Emulator Suite —
+поэтому PR из форка тоже проходит полную сборку и инструментальные тесты.
 
 ---
 
@@ -119,7 +121,7 @@ make secrets        # ./scripts/sync-secrets.sh → app/google-services.json
 | Симптом | Причина | Лечение |
 |---|---|---|
 | `google-services.json отсутствует, а переменные Doppler не заданы` | гоняешь `./gradlew` без `doppler run` | `make build` или `make secrets` |
-| `DOPPLER_TOKEN недоступен — сборка пропущена` | PR из форка (секреты не отдаются) | норма, это защита |
+| `DOPPLER_TOKEN недоступен — проверка реальных секретов пропущена` | PR из форка (секреты не отдаются) | норма; сборка идёт с mock-конфигом и эмуляторами |
 | `Invalid base64` | в секрет попал перенос строки | `base64 < file \| tr -d '\n'` |
 | Release падает на подписи | нет `KEYSTORE_B64`/паролей в конфиге | добавить в Doppler |
 

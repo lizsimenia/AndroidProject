@@ -1,5 +1,6 @@
 package com.example.coflow
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -31,6 +32,7 @@ object Screen {
 }
 
 class MainActivity : ComponentActivity() {
+    @SuppressLint("ComposableDestinationInComposeScope")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -44,34 +46,13 @@ class MainActivity : ComponentActivity() {
 
                     NavHost(navController = navController, startDestination = Screen.TASKS) {
                         composable(Screen.TASKS) {
-                            TasksScreen(
-                                onNavigateToCreateTask = { navController.navigate(Screen.CREATE_TASK) },
-                                onNavigateToTaskDetail = { taskId -> navController.navigate("task_detail/$taskId") }
-                            )
                         }
 
                         // Экран просмотра задачи
                         composable(
                             route = Screen.TASK_DETAIL,
-                            arguments = listOf(androidx.navigation.navArgument("taskId") { type = androidx.navigation.NavType.IntType })
                         ) { backStackEntry ->
-                            val taskId = backStackEntry.arguments?.getInt("taskId")
-                            // Ищем задачу в тестовых данных по ID
-                            val task = com.example.coflow.data.TasksTestData.tasks.find { it.id == taskId }
 
-                            if (task != null) {
-                                TaskDetailScreen(
-                                    task = task,
-                                    onBackClick = { navController.popBackStack() },
-                                    onEditClick = {
-                                        android.widget.Toast.makeText(
-                                            this@MainActivity,
-                                            "Редактирование ляляля",
-                                            android.widget.Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                )
-                            }
                         }
 
                         composable(Screen.CREATE_TASK) {

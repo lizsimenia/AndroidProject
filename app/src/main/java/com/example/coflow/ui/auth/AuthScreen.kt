@@ -149,7 +149,7 @@ fun AuthRoute(onAuthSuccess: () -> Unit,
         onPasswordChange = viewModel::onPasswordChange,
         onConfirmChange = viewModel::onConfirmChange,
         onToggleMode = viewModel::onToggleMode,
-        onSubmit = { viewModel.onSubmit(onAuthSuccess) }
+        onSubmit = { viewModel.onSubmit() }
     )
 }
 
