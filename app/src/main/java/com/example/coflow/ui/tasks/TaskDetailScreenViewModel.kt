@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import com.example.coflow.R
 
 enum class TaskStatusUi {
     TODO,
@@ -28,7 +29,7 @@ data class TaskDetailUiState(
     val isOverdue: Boolean,
     val canEdit: Boolean,
     val showBottomAction: Boolean,
-    val bottomActionText: String,
+    val bottomActionTextResId: Int,
 )
 
 class TaskDetailScreenViewModel(
@@ -64,7 +65,7 @@ class TaskDetailScreenViewModel(
                     current.copy(
                         status = TaskStatusUi.IN_PROGRESS,
                         canEdit = true,
-                        bottomActionText = "Выполнить",
+                        bottomActionTextResId = R.string.task_action_complete,
                     )
                 }
 
@@ -73,7 +74,7 @@ class TaskDetailScreenViewModel(
                         status = TaskStatusUi.DONE,
                         canEdit = false,
                         showBottomAction = false,
-                        bottomActionText = "",
+                        bottomActionTextResId = 0,
                     )
                 }
 
@@ -113,7 +114,7 @@ class TaskDetailScreenViewModel(
                     isOverdue = false,
                     canEdit = true,
                     showBottomAction = true,
-                    bottomActionText = "Взять задачу",
+                    bottomActionTextResId = R.string.task_action_take,
                 )
             }
 
@@ -130,7 +131,7 @@ class TaskDetailScreenViewModel(
                     isOverdue = true,
                     canEdit = false,
                     showBottomAction = true,
-                    bottomActionText = "Выполнить",
+                    bottomActionTextResId = R.string.task_action_complete,
                 )
             }
 
@@ -147,7 +148,7 @@ class TaskDetailScreenViewModel(
                     isOverdue = false,
                     canEdit = false,
                     showBottomAction = false,
-                    bottomActionText = "",
+                    bottomActionTextResId = 0,
                 )
             }
         }

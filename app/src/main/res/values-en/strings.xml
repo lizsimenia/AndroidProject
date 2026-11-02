@@ -47,6 +47,8 @@
 
         <string name="create_task_choose_assignee_placeholder">Name or email</string>
 
+        <string name="task_detail_author_label">Author of the task</string>
+
         <!-- Кнопки -->
         <string name="auth_button_login">Log in</string>
         <string name="auth_button_register">Sign up</string>
@@ -63,6 +65,9 @@
         <string name="edit_task_save_button">Save changes</string>
         <string name="edit_task_delete_button">Delete task</string>
 
+        <string name="task_action_take">Take task</string>
+        <string name="task_action_complete">Complete</string>
+
         <!-- Ошибки -->
         <string name="auth_error_invalid_contact">Check email or phone format</string>
         <string name="auth_error_short_password">Minimum 8 characters</string>
@@ -72,11 +77,11 @@
         <!-- Группы -->
         <string name="tasks_group_planned">For execution</string>
         <string name="tasks_group_active">In process</string>
-        <string name="tasks_group_completed">Completed</string>
+        <string name="tasks_group_done">Completed</string>
 
-        <string name="tasks_group_today">Today</string>
-        <string name="tasks_group_this_week">This week</string>
-        <string name="tasks_group_next_week">Next week</string>
+    <string name="tasks_group_overdue">Overdue</string>
+    <string name="tasks_group_today">Today</string>
+    <string name="tasks_group_this_week">This week</string>
 
         <string name="create_task_projects">Projects</string>
 
@@ -90,7 +95,8 @@
         <!-- Фильтры -->
         <string name="filter_header">Filter</string>
         <string name="filter_none">No filter</string>
-        <string name="filter_mine">Mine</string>
+        <string name="filter_mine">My tasks</string>
+        <string name="filter_project">Project:</string>
 
         <!-- Notifications -->
         <string name="notification_title">Notifications</string>

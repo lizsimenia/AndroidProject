@@ -107,7 +107,7 @@ fun TaskDetailScreen(
 
                         // Описание
                         Column {
-                            Text("Описание", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
+                            Text(stringResource(R.string.creation_task_description_label), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = state.description.ifBlank { stringResource(com.example.coflow.R.string.description_placeholder) },
@@ -118,7 +118,7 @@ fun TaskDetailScreen(
 
                         // Автор
                         Column {
-                            Text("Автор задачи", fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
+                            Text(stringResource(R.string.task_detail_author_label), fontSize = 13.sp, fontWeight = FontWeight.SemiBold, color = CoFlowColors.TextPrimary)
                             Spacer(Modifier.height(4.dp))
                             Text(
                                 text = state.author.ifBlank { stringResource(R.string.author_placeholder) },
@@ -204,7 +204,7 @@ fun TaskDetailScreen(
             // Нижняя кнопка
             if (state.showBottomAction) {
                 CoFlowPrimaryButton(
-                    text = state.bottomActionText,
+                    text = stringResource(state.bottomActionTextResId),
                     onClick = onBottomActionClick,
                     modifier = Modifier.padding(top = 8.dp, bottom = 16.dp),
                 )
@@ -232,13 +232,15 @@ private fun TagChip(text: String) {
         )
     }
 }
-
+@Composable
 private fun getStatusText(status: TaskStatusUi): String =
+    stringResource(
     when (status) {
-        TaskStatusUi.TODO -> "К исполнению"
-        TaskStatusUi.IN_PROGRESS -> "В процессе"
-        TaskStatusUi.DONE -> "Сделано"
+        TaskStatusUi.TODO -> R.string.tasks_group_planned
+        TaskStatusUi.IN_PROGRESS -> R.string.tasks_group_active
+        TaskStatusUi.DONE -> R.string.tasks_group_done
     }
+    )
 
 @Composable
 fun TaskDetailRoute(
@@ -295,7 +297,7 @@ fun TaskDetailScreen_InProgressOverdue_Preview() {
                     isOverdue = true, // Дата красная
                     canEdit = false,
                     showBottomAction = true,
-                    bottomActionText = "Выполнить",
+                    bottomActionTextResId = R.string.task_action_complete,
                 ),
             onBackClick = {},
             onEditClick = {},
@@ -322,7 +324,7 @@ fun TaskDetailScreen_Todo_Preview() {
                     isOverdue = false,
                     canEdit = true, // Покажет карандаш
                     showBottomAction = true,
-                    bottomActionText = "Взять задачу",
+                    bottomActionTextResId = R.string.task_action_take,
                 ),
             onBackClick = {},
             onEditClick = {},
@@ -349,7 +351,7 @@ private fun TaskDetailScreen_Done_Preview() {
                     isOverdue = false,
                     canEdit = false, // Карандаша нет
                     showBottomAction = false, // Кнопки внизу нет
-                    bottomActionText = "",
+                    bottomActionTextResId =0,
                 ),
             onBackClick = {},
             onEditClick = {},

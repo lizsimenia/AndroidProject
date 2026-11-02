@@ -5,8 +5,23 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import com.example.coflow.R
 
 enum class TaskGrouping { STATUS, DEADLINE }
+
+// Добавляем типы фильтров для безопасной логики без строковых сравнений
+enum class FilterType {
+    NO_FILTER,
+    MY_TASKS,
+    PROJECT
+}
+
+// Связка типа фильтра и его строкового ресурса
+data class FilterOption(
+    val type: FilterType,
+    val titleResId: Int,
+    val projectName: String? = null
+)
 
 data class TaskRowUi(
     val id: Int,
@@ -19,7 +34,7 @@ data class TaskRowUi(
 
 data class TaskGroupUi(
     val id: String,
-    val title: String,
+    val titleResId: Int,
     val count: Int,
     val isExpanded: Boolean,
     val tasks: List<TaskRowUi>,
@@ -30,9 +45,8 @@ data class TasksUiState(
     val completedCount: Int,
     val groups: List<TaskGroupUi>,
     val currentGrouping: TaskGrouping,
-    val selectedFilters: Set<String>,
-    val filterButtonText: String,
-    val availableFilters: List<String>,
+    val selectedFilters: Set<FilterType>,
+    val availableFilters: List<FilterOption>,
     val isBottomBarVisible: Boolean,
 )
 
@@ -60,9 +74,12 @@ class TasksScreenViewModel : ViewModel() {
             completedCount = completedTasks,
             groups = groupTasksByStatus(stubTasks),
             currentGrouping = TaskGrouping.STATUS,
-            selectedFilters = emptySet(),
-            filterButtonText = "Без фильтра",
-            availableFilters = listOf("Без фильтра", "Мои задачи", "Проект: Дизайн-система", "Проект: Мобильное приложение"),
+            selectedFilters = setOf(FilterType.NO_FILTER),
+            availableFilters = listOf(
+                FilterOption(FilterType.NO_FILTER, R.string.filter_none),
+                FilterOption(FilterType.MY_TASKS, R.string.filter_mine),
+                FilterOption(FilterType.PROJECT, R.string.filter_project)
+            ),
             isBottomBarVisible = true,
         )
     }
@@ -83,26 +100,30 @@ class TasksScreenViewModel : ViewModel() {
         }
     }
 
-    fun onFilterToggle(filter: String) {
+    fun onFilterToggle(filterType: FilterType) {
         _uiState.update { state ->
             val newFilters = state.selectedFilters.toMutableSet()
 
-            if (filter == "Без фильтра") {
+            if (filterType == FilterType.NO_FILTER) {
                 newFilters.clear()
+                newFilters.add(FilterType.NO_FILTER)
             } else {
-                if (newFilters.contains(filter)) {
-                    newFilters.remove(filter)
+                // Убираем "Без фильтра", если выбран конкретный фильтр
+                newFilters.remove(FilterType.NO_FILTER)
+
+                if (newFilters.contains(filterType)) {
+                    newFilters.remove(filterType)
                 } else {
-                    newFilters.add(filter)
+                    newFilters.add(filterType)
+                }
+
+                // Если сняли все фильтры, возвращаем состояние "Без фильтра"
+                if (newFilters.isEmpty()) {
+                    newFilters.add(FilterType.NO_FILTER)
                 }
             }
 
-            val buttonText = if (newFilters.isEmpty()) "Без фильтра" else newFilters.joinToString(", ")
-
-            state.copy(
-                selectedFilters = newFilters,
-                filterButtonText = buttonText,
-            )
+            state.copy(selectedFilters = newFilters)
         }
     }
 
@@ -133,9 +154,9 @@ class TasksScreenViewModel : ViewModel() {
         val done = tasks.filter { it.isDone }
 
         return listOf(
-            TaskGroupUi("TODO", "К исполнению", todo.size, isExpanded = true, tasks = todo),
-            TaskGroupUi("IN_PROGRESS", "В процессе", inProgress.size, isExpanded = false, tasks = inProgress),
-            TaskGroupUi("DONE", "Сделано", done.size, isExpanded = false, tasks = done),
+            TaskGroupUi("TODO", R.string.tasks_group_planned, todo.size, isExpanded = true, tasks = todo),
+            TaskGroupUi("IN_PROGRESS", R.string.tasks_group_active, inProgress.size, isExpanded = false, tasks = inProgress),
+            TaskGroupUi("DONE", R.string.tasks_group_done, done.size, isExpanded = false, tasks = done),
         )
     }
 
@@ -145,9 +166,9 @@ class TasksScreenViewModel : ViewModel() {
         val done = tasks.filter { it.isDone }
 
         return listOf(
-            TaskGroupUi("OVERDUE", "Просрочено", overdue.size, isExpanded = true, tasks = overdue),
-            TaskGroupUi("UPCOMING", "Предстоящие", upcoming.size, isExpanded = false, tasks = upcoming),
-            TaskGroupUi("COMPLETED", "Завершенные", done.size, isExpanded = false, tasks = done),
+            TaskGroupUi("OVERDUE", R.string.tasks_group_overdue, overdue.size, isExpanded = true, tasks = overdue),
+            TaskGroupUi("UPCOMING", R.string.tasks_group_today, upcoming.size, isExpanded = false, tasks = upcoming),
+            TaskGroupUi("COMPLETED", R.string.tasks_group_this_week, done.size, isExpanded = false, tasks = done),
         )
     }
 }

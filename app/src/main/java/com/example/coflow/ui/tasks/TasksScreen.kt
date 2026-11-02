@@ -68,7 +68,7 @@ fun TasksScreen(
     onNavigateToCreateTask: () -> Unit,
     onNavigateToTaskDetail: (Int) -> Unit,
     onGroupingChange: (TaskGrouping) -> Unit,
-    onFilterToggle: (String) -> Unit,
+    onFilterToggle: (FilterType) -> Unit,
     onToggleGroup: (String) -> Unit,
     onNavigateToProjects: () -> Unit,
     onNavigateToProfile: () -> Unit,
@@ -145,7 +145,7 @@ fun TasksScreen(
                             modifier = Modifier.weight(1f),
                             grouping = state.currentGrouping,
                             onGroupingChange = onGroupingChange,
-                            filterButtonText = state.filterButtonText,
+                            availableFilters = state.availableFilters,
                             onFilterToggle = onFilterToggle,
                             selectedFilters = state.selectedFilters,
                         )
@@ -198,7 +198,7 @@ private fun TaskGroupCard(
     ) {
         Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = group.title,
+                text = stringResource(group.titleResId),
                 fontSize = 13.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = CoFlowColors.TextPrimary,
@@ -213,7 +213,7 @@ private fun TaskGroupCard(
                         .padding(horizontal = 5.dp, vertical = 2.dp),
             ) {
                 Text(
-                    text = group.tasks.size.toString(),
+                    text = group.count.toString(),
                     fontSize = 10.sp,
                     fontWeight = FontWeight.Medium,
                     color = CoFlowColors.Blue,
@@ -305,10 +305,30 @@ private fun SortFilterPanel(
     modifier: Modifier = Modifier,
     grouping: TaskGrouping,
     onGroupingChange: (TaskGrouping) -> Unit,
-    selectedFilters: Set<String>,
-    filterButtonText: String,
-    onFilterToggle: (String) -> Unit,
+    availableFilters: List<FilterOption>,
+    selectedFilters: Set<FilterType>,
+    onFilterToggle: (FilterType) -> Unit,
 ) {
+    val filterButtonText = if (selectedFilters.contains(FilterType.NO_FILTER) || selectedFilters.isEmpty()) {
+        stringResource(R.string.filter_none)
+    } else {
+        val parts = mutableListOf<String>()
+        for (type in selectedFilters) {
+            val option = availableFilters.first { it.type == type }
+            val text = when (option.type) {
+                FilterType.MY_TASKS -> stringResource(option.titleResId)
+                FilterType.PROJECT -> {
+                    val base = stringResource(option.titleResId)
+                    val name = option.projectName ?: "Неизвестно"
+                    "$base\"$name\""
+                }
+                else -> ""
+            }
+            parts.add(text)
+        }
+        parts.joinToString(", ")
+        }
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(7.dp),
@@ -331,14 +351,7 @@ private fun SortFilterPanel(
                     Spacer(Modifier.height(3.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text =
-                                if (grouping ==
-                                    TaskGrouping.STATUS
-                                ) {
-                                    stringResource(R.string.grouping_status)
-                                } else {
-                                    stringResource(R.string.grouping_deadline)
-                                },
+                            text =filterButtonText,
                             fontSize = 11.sp,
                             color = CoFlowColors.TextPrimary,
                             maxLines = 1,
@@ -367,6 +380,7 @@ private fun SortFilterPanel(
                 shadowElevation = 0.dp,
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.82f)),
             ) {
+
                 GlassGroupingOption(
                     title = stringResource(R.string.grouping_status),
                     selected = grouping == TaskGrouping.STATUS,
@@ -417,34 +431,30 @@ private fun SortFilterPanel(
             }
             DropdownMenu(
                 expanded = expanded,
-                onDismissRequest = {
-                    expanded = false
-                },
-                shape =
-                    RoundedCornerShape(
-                        16.dp,
-                    ),
-                containerColor =
-                    Color(
-                        0xFFF4F8FF,
-                    ).copy(
-                        alpha = 0.62f,
-                    ),
+                onDismissRequest = { expanded = false },
+                shape = RoundedCornerShape(16.dp),
+                containerColor = Color(0xFFF4F8FF).copy(alpha = 0.62f),
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
                 border = BorderStroke(1.dp, Color.White.copy(alpha = 0.82f)),
             ) {
-                listOf(
-                    stringResource(R.string.filter_none),
-                    stringResource(R.string.filter_mine),
-                    "Проект 1",
-                    "Проект 2",
-                    "Проект 3",
-                ).forEach { option ->
+                availableFilters.forEach { option ->
+                    val optionTitle = when (option.type) {
+                        FilterType.PROJECT -> {
+                            val base = stringResource(option.titleResId)
+                            val name = option.projectName ?: "Неизвестно"
+                            "$base\"$name\""
+                        }
+
+                        else -> stringResource(option.titleResId)
+                    }
+
                     GlassFilterOption(
-                        title = option,
-                        selected = selectedFilters.contains(option),
-                    ) { onFilterToggle(option) }
+                        title = optionTitle,
+                        selected = selectedFilters.contains(option.type),
+                    ) {
+                        onFilterToggle(option.type)
+                    }
                 }
             }
         }
@@ -615,73 +625,41 @@ fun TasksScreen_Default_Preview() {
                         listOf(
                             TaskGroupUi(
                                 id = "TODO",
-                                title = "К исполнению",
+                                titleResId = R.string.tasks_group_planned, // ← Изменено
                                 count = 2,
                                 isExpanded = true,
-                                tasks =
-                                    listOf(
-                                        TaskRowUi(
-                                            1,
-                                            "Обновить иконки навигации",
-                                            "Дизайн-система",
-                                            "30.10.26",
-                                            isDone = false,
-                                            isOverdue = false,
-                                        ),
-                                        TaskRowUi(
-                                            2,
-                                            "Согласовать ТЗ с заказчиком",
-                                            "Сайт",
-                                            "01.11.26",
-                                            isDone = false,
-                                            isOverdue = false,
-                                        ),
-                                    ),
+                                tasks = listOf(
+                                    TaskRowUi(1, "Обновить иконки навигации", "Дизайн-система", "30.10.26", isDone = false, isOverdue = false),
+                                    TaskRowUi(2, "Согласовать ТЗ с заказчиком", "Сайт", "01.11.26", isDone = false, isOverdue = false),
+                                ),
                             ),
                             TaskGroupUi(
                                 id = "IN_PROGRESS",
-                                title = "В процессе",
+                                titleResId = R.string.tasks_group_active, // ← Изменено
                                 count = 3,
                                 isExpanded = false,
-                                tasks =
-                                    listOf(
-                                        TaskRowUi(
-                                            3,
-                                            "Разработать онбординг",
-                                            "Мобильное приложение",
-                                            "24.10.26",
-                                            isDone = false,
-                                            isOverdue = true,
-                                        ), // Просрочено!
-                                        TaskRowUi(
-                                            4,
-                                            "Настроить CI/CD",
-                                            "Бэкенд",
-                                            "28.10.26",
-                                            isDone = false,
-                                            isOverdue = false,
-                                        ),
-                                    ),
+                                tasks = listOf(
+                                    TaskRowUi(3, "Разработать онбординг", "Мобильное приложение", "24.10.26", isDone = false, isOverdue = true),
+                                    TaskRowUi(4, "Настроить CI/CD", "Бэкенд", "28.10.26", isDone = false, isOverdue = false),
+                                ),
                             ),
                             TaskGroupUi(
                                 id = "DONE",
-                                title = "Сделано",
+                                titleResId = R.string.tasks_group_done,
                                 count = 12,
                                 isExpanded = false,
                                 tasks = emptyList(),
                             ),
                         ),
                     currentGrouping = TaskGrouping.STATUS,
-                    filterButtonText = "Без фильтра",
-                    availableFilters =
-                        listOf(
-                            "Без фильтра",
-                            "Мои задачи",
-                            "Проект: Дизайн-система",
-                            "Проект: Мобильное приложение",
-                        ),
+                    availableFilters = listOf(
+                        FilterOption(FilterType.NO_FILTER, R.string.filter_none),
+                        FilterOption(FilterType.MY_TASKS, R.string.filter_mine),
+                        FilterOption(FilterType.PROJECT, R.string.filter_project, projectName = "Дизайн-система"),
+                        FilterOption(FilterType.PROJECT, R.string.filter_project, projectName = "Мобильное приложение")
+                    ),
                     isBottomBarVisible = true,
-                    selectedFilters = setOf("Мои задачи"),
+                    selectedFilters = setOf(FilterType.MY_TASKS),
                 ),
             onNavigateToCreateTask = {},
             onNavigateToTaskDetail = {},

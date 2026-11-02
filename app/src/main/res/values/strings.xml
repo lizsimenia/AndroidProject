@@ -46,6 +46,8 @@
 
     <string name="create_task_choose_assignee_placeholder">Имя или почта</string>
 
+    <string name="task_detail_author_label">Автор задачи</string>
+
     <!-- Кнопки -->
     <string name="auth_button_login">Войти</string>
     <string name="auth_button_register">Зарегистрироваться</string>
@@ -62,6 +64,9 @@
     <string name="edit_task_save_button">Сохранить изменения</string>
     <string name="edit_task_delete_button">Удалить задачу</string>
 
+    <string name="task_action_take">Взять задачу</string>
+    <string name="task_action_complete">Выполнить</string>
+
     <!-- Ошибки -->
     <string name="auth_error_invalid_contact">Проверьте формат почты или телефона</string>
     <string name="auth_error_short_password">Минимум 8 символов</string>
@@ -71,11 +76,11 @@
     <!-- Группы -->
     <string name="tasks_group_planned">К исполнению</string>
     <string name="tasks_group_active">В процессе</string>
-    <string name="tasks_group_completed">Завершены</string>
+    <string name="tasks_group_done">Завершены</string>
 
+    <string name="tasks_group_overdue">Просрочено</string>
     <string name="tasks_group_today">Сегодня</string>
     <string name="tasks_group_this_week">Эта неделя</string>
-    <string name="tasks_group_next_week">Следующая неделя</string>
 
     <string name="create_task_projects">Проекты</string>
 
@@ -90,6 +95,7 @@
     <string name="filter_header">Фильтр</string>
     <string name="filter_none">Без фильтра</string>
     <string name="filter_mine">Мои</string>
+    <string name="filter_project">Проект:</string>
 
     <!-- Уведомления -->
     <string name="notification_title">Уведомления</string>
