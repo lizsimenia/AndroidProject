@@ -157,7 +157,7 @@ dependencies {
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)
-    implementation("androidx.compose.material:material-icons-core:1.6.8") // или ваша актуальная версия Compose
+    implementation("androidx.compose.material:material-icons-core:1.6.8")
     implementation("androidx.compose.material:material-icons-extended:1.6.8")
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.ui.graphics)
