@@ -113,9 +113,12 @@ class MainActivity : ComponentActivity() {
                             // Просмотр задачи
                             composable(
                                 route = Screen.TASK_DETAIL,
-                                arguments = listOf(navArgument("taskId") {
-                                    type = NavType.StringType
-                                }),
+                                arguments =
+                                    listOf(
+                                        navArgument("taskId") {
+                                            type = NavType.StringType
+                                        },
+                                    ),
                             ) {
                                 TaskDetailRoute(
                                     onNavigateBack = { navController.popBackStack() },

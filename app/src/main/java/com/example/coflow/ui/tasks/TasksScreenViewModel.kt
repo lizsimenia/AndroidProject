@@ -266,8 +266,6 @@ class TasksScreenViewModel(
         }
     }
 
-
-
     fun onTaskSwipe(task: TaskRowUi) {
         // TODO: Здесь позже будет реализована логика
         // взятия задачи или изменения её статуса, работайте друзья

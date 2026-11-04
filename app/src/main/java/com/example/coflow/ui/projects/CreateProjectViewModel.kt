@@ -142,9 +142,10 @@ class CreateProjectViewModel(
         val participant = _state.value.participantPendingRemoval ?: return
         _state.update {
             it.copy(
-                participants = it.participants.filterNot { p ->
-                    p.email.equals(participant.email, ignoreCase = true)
-                },
+                participants =
+                    it.participants.filterNot { p ->
+                        p.email.equals(participant.email, ignoreCase = true)
+                    },
                 participantPendingRemoval = null,
             )
         }
